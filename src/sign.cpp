@@ -1,7 +1,5 @@
-#include <fstream>
-#include <vector>
 #include "block.hpp"
-#include "elliptic_curve.hpp"
+#include "signature.hpp"
 
 Set get_mode (int argc, char **argv)
 {
@@ -24,9 +22,19 @@ std::vector<char*> get_files (int argc, char **argv)
     return names;
 }   
 
+std::string convert_name (const std::string &input_name)
+{
+    std::string name = input_name;
+    auto dot_pos = input_name.rfind(".");
+    name.erase(dot_pos, input_name.size());
+    name.erase(0, name.find("/"));
+    name += ".crt";
+    return name;
+}
+
 Private_key get_priv_key (const Elliptic_curve &param_set, const std::vector<char*> names)
 {
-    if (names.empty() || names.size() > 2) {
+    if (names.size() < 2 || names.size() > 3) {
         throw std::runtime_error("Incorrect command line arguments.");
     }
     std::ifstream priv_key_f;
@@ -43,33 +51,18 @@ Private_key get_priv_key (const Elliptic_curve &param_set, const std::vector<cha
     return Private_key(param_set, priv_key_num);
 }
 
-std::string convert_name (const std::string &input_name)
-{
-    std::string name = input_name;
-    auto dot_pos = input_name.rfind(".");
-    name.erase(dot_pos, input_name.size());
-    if (name.find("keys/") == std::string::npos) {
-        name = "keys/" + name;
-    }
-    name += ".pub";
-    return name;
-}
-
 int main (int argc, char **argv)
 {
     try {
         Set mode = get_mode(argc, argv);
         Elliptic_curve param_set(mode);
         auto names = get_files(argc, argv);
-        Private_key priv_key = get_priv_key(param_set, names);
-        std::ofstream pub_key_f;
-        if (names.size() > 1) {
-            pub_key_f.open(names[1]);
-        } else {
-            pub_key_f.open(convert_name(names[0]));
+        auto priv_key = get_priv_key(param_set, names);
+        if (names.size() < 3) {
+            names.push_back((char*)"");
         }
-        Public_key pub_key(param_set, priv_key);
-        pub_key_f << pub_key;
+        Signature::Context ctx(param_set, names[1], names[2]);
+        ctx.sign(priv_key);
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
     }

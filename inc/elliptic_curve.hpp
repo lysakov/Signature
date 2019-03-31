@@ -44,7 +44,11 @@ class Point
     Point operator + (const Point&);
     Point& operator ++ ();
     Point convert ();
+    const Elliptic_curve* get_param_set () const;
+    uint512_t get_x () const noexcept;
+    uint512_t get_y () const noexcept;
     friend std::ostream& operator << (std::ostream&, const Point&);
+    friend Point operator * (const uint512_t&, const Point&);
 
   private :
     const Elliptic_curve *param_set;
@@ -52,6 +56,8 @@ class Point
     uint512_t y;
 
 };
+
+Point operator * (const uint512_t&, const Point&);
 
 class Private_key
 {
@@ -80,5 +86,7 @@ class Public_key
     Point key;
 
 };
+
+uint512_t gen_rand_seq (const Elliptic_curve&);
 
 #endif

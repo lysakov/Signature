@@ -1,5 +1,7 @@
 #include "hash.hpp"
 
+using namespace Hash;
+
 Context::Context (Mode mode, const std::string &file_name)
 {
     matrix_init(matrix, MATRIX_SIZE);
@@ -12,6 +14,15 @@ Context::Context (Mode mode, const std::string &file_name)
     _eof_ = false;
     last_iteration = false;
     fill_buffer();
+    if (mode == HASH_256) {
+        hash256_init();
+    } else {
+        hash512_init();
+    }
+}
+
+void Context::set_mode (Mode mode) noexcept
+{
     if (mode == HASH_256) {
         hash256_init();
     } else {
@@ -93,7 +104,7 @@ void Context::modify_buffer ()
     cur_buf_pos += gcount;
 }
 
-void Context::update (Flag tracing = TRACING_OFF)
+void Context::update (Flag tracing)
 {
     if (tracing == TRACING_ON) {
         trace();
@@ -108,7 +119,7 @@ void Context::update (Flag tracing = TRACING_OFF)
     }
 }
 
-Block::Block<512>& Context::finish (Flag tracing = TRACING_OFF)
+Block::Block<512>& Context::finish (Flag tracing)
 {
     if (tracing == TRACING_ON) {
         trace();

@@ -107,14 +107,47 @@ Point Point::convert ()
     return Point(nullptr, new_x, new_y);
 }
 
-Private_key::Private_key (const Elliptic_curve &param_set) : param_set(&param_set)
+uint512_t Point::get_x () const noexcept
 {
-    uint8_t priv_key_arr[UINT512_SIZE] = {0};
+    return x;
+}
+
+uint512_t Point::get_y () const noexcept
+{
+    return y;
+}
+
+Point operator * (const uint512_t &k, const Point &p)
+{
+    Point pow[8 * UINT512_SIZE];
+    pow[0] = p;
+    Point result(p.param_set, 0, 1);
+    for (size_t i = 1; i < 8 * UINT512_SIZE; ++i) {
+        pow[i] = pow[i - 1] + pow[i - 1];
+    }
+    for (size_t i = 0; i < 8 * UINT512_SIZE; ++i) {
+        if (k[i]) {
+            result = result + pow[i];
+        }
+    }
+    return result;
+}
+
+uint512_t gen_rand_seq (const Elliptic_curve &param_set)
+{
+    uint512_t seq;
+    uint8_t seq_arr[UINT512_SIZE] = {0};
     int arr_size = param_set.get() == PARAM_SET_512 ? UINT512_SIZE : UINT256_SIZE;
     do {
-        rand_bytes(priv_key_arr, arr_size);
-        key = uint512_t(priv_key_arr, UINT512_SIZE);
-    } while (key == (uint512_t)0 || (key > param_set.q));
+        rand_bytes(seq_arr, arr_size);
+        seq = uint512_t(seq_arr, UINT512_SIZE);
+    } while (seq == (uint512_t)0 || (seq > param_set.q));
+    return seq;
+}
+
+Private_key::Private_key (const Elliptic_curve &param_set) : param_set(&param_set)
+{
+    key = gen_rand_seq(param_set);
 }
 
 Private_key::Private_key (const Elliptic_curve &param_set, const uint512_t &key) : param_set(&param_set), key(key)
@@ -137,17 +170,7 @@ std::ostream& operator << (std::ostream &str, const Private_key &priv_key)
 
 Public_key::Public_key (const Elliptic_curve &param_set, const Private_key &priv_key) : key(&param_set, 0, 1)
 {
-    Point pow[8 * UINT512_SIZE];
-    Point generator(&param_set);
-    pow[0] = generator;
-    for (size_t i = 1; i < 8 * UINT512_SIZE; ++i) {
-        pow[i] = pow[i - 1] + pow[i - 1];
-    }
-    for (size_t i = 0; i < 8 * UINT512_SIZE; ++i) {
-        if (priv_key.get()[i]) {
-            key = key + pow[i];
-        }
-    }
+    key = priv_key.get() * Point(&param_set);
 }
 
 Public_key::Public_key (const Point &point) : key(point)

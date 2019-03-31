@@ -1,6 +1,8 @@
 #include "block.hpp"
 #include "hash.hpp"
 
+using namespace Hash;
+
 Block::Block<8> Context::substitution (const Block::Block<8> &block) const noexcept
 {
     uint64_t subs_table[] = {
