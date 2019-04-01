@@ -176,6 +176,11 @@ Public_key::Public_key (const Elliptic_curve &param_set, const Private_key &priv
 Public_key::Public_key (const Point &point) : key(point)
 {}
 
+Point Public_key::get () const noexcept
+{
+    return key;
+}
+
 std::ostream& operator << (std::ostream &str, const Public_key &pub_key)
 {
     str << pub_key.key;

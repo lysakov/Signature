@@ -80,6 +80,7 @@ class Public_key
   public :
     Public_key (const Elliptic_curve&, const Private_key&);
     Public_key (const Point&);
+    Point get () const noexcept;
     friend std::ostream& operator << (std::ostream&, const Public_key&);
 
   private :

@@ -10,12 +10,20 @@ using namespace Hash;
 
 int main (int argc, char **argv)
 {
+    std::cout << argv[argc - 1] << '\n';
     try {
         Elliptic_curve param_set(PARAM_SET_256);
         Private_key d(param_set);
-        Signature::Context ctx(param_set, argv[argc - 1]);
+        Public_key Q(param_set, d);
+        std::cout << Q << '\n';
+        Signature::Context ctx(param_set, "bin/main.o");
         //std::cout << argv[argc - 1] << " : " << ctx.count_hash() << std::endl;
-        ctx.sign(d); 
+        //ctx.sign(d); 
+        if (ctx.verify(Q, "signatures/main.crt")) {
+            std::cout << "TRUE" << std::endl;
+        } else {
+            std::cout << "FALSE" << std::endl;
+        } 
         //std::cout << d << '\n';
         //Public_key q(param_set, Private_key(param_set, param_set.q));
         //std::cout << q << '\n';

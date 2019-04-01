@@ -22,19 +22,10 @@ std::vector<char*> get_files (int argc, char **argv)
     return names;
 }   
 
-std::string convert_name (const std::string &input_name)
-{
-    std::string name = input_name;
-    auto dot_pos = input_name.rfind(".");
-    name.erase(dot_pos, input_name.size());
-    name.erase(0, name.find("/"));
-    name += ".crt";
-    return name;
-}
-
 Private_key get_priv_key (const Elliptic_curve &param_set, const std::vector<char*> names)
 {
-    if (names.size() < 2 || names.size() > 3) {
+    uint512_t priv_key_num;
+    if (names.empty() || names.size() > 2) {
         throw std::runtime_error("Incorrect command line arguments.");
     }
     std::ifstream priv_key_f;
@@ -44,10 +35,15 @@ Private_key get_priv_key (const Elliptic_curve &param_set, const std::vector<cha
     }
     std::string priv_key_s;
     std::getline(priv_key_f, priv_key_s);
-    while (priv_key_s.size() < UINT512_SIZE * 2) {
-        priv_key_s = "0" + priv_key_s;
+    if (priv_key_s.size() == 2 * UINT256_SIZE && param_set.get() == PARAM_SET_256) {
+        priv_key_num = extend(uint256_t(uint256_t::HEX, priv_key_s));
+    } else {
+        if (priv_key_s.size() == 2 * UINT512_SIZE && param_set.get() == PARAM_SET_512) {
+            priv_key_num = uint512_t(uint512_t::HEX, priv_key_s);
+        } else {
+            throw std::runtime_error("Incorrect private key.");
+        }
     }
-    uint512_t priv_key_num(uint512_t::HEX, priv_key_s);
     return Private_key(param_set, priv_key_num);
 }
 
@@ -61,8 +57,8 @@ int main (int argc, char **argv)
         if (names.size() < 3) {
             names.push_back((char*)"");
         }
-        Signature::Context ctx(param_set, names[1], names[2]);
-        ctx.sign(priv_key);
+        Signature::Context ctx(param_set, names[1]);
+        ctx.sign(priv_key, names[2]);
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
     }

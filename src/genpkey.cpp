@@ -3,11 +3,6 @@
 #include "block.hpp"
 #include "elliptic_curve.hpp"
 
-enum Mode {
-    Z_256_BIT_SIZE,
-    Z_512_BIT_SIZE
-};
-
 Set get_mode (int argc, char **argv)
 {
     for (int i = 1; i < argc; ++i) {
