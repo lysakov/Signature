@@ -1,28 +1,4 @@
-#include <fstream>
-#include <vector>
-#include "block.hpp"
-#include "elliptic_curve.hpp"
-
-Set get_mode (int argc, char **argv)
-{
-    for (int i = 1; i < argc; ++i) {
-        if (std::string(argv[i]) == "-s") {
-            return PARAM_SET_256;
-        }
-    }
-    return PARAM_SET_512;
-}
-
-std::vector<char*> get_files (int argc, char **argv)
-{
-    std::vector<char*> names;
-    for (int i = 1; i < argc; ++i) {
-        if (std::string(argv[i]) != "-s") {
-            names.push_back(argv[i]);
-        }
-    }
-    return names;
-}
+#include "common.hpp"
 
 int main (int argc, char **argv)
 {

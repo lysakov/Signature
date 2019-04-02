@@ -7,10 +7,10 @@ PRIV_KEY = genpkey.out
 PUB_KEY = convpkey.out
 SIGN = sign.out
 VERIFY = verify.out
-OBJECTS_PRIV_KEY = bin/modular_arithmetic.o bin/elliptic_curve.o bin/genpkey.o bin/rand.o
-OBJECTS_PUB_KEY = bin/modular_arithmetic.o bin/elliptic_curve.o bin/convpkey.o bin/rand.o
-OBJECTS_SIGN = bin/modular_arithmetic.o bin/elliptic_curve.o bin/rand.o bin/signature.o bin/sign.o
-OBJECTS_VERIFY = bin/modular_arithmetic.o bin/elliptic_curve.o bin/rand.o bin/signature.o bin/verify.o
+OBJECTS_PRIV_KEY = bin/modular_arithmetic.o bin/elliptic_curve.o bin/genpkey.o bin/rand.o bin/common.o
+OBJECTS_PUB_KEY = bin/modular_arithmetic.o bin/elliptic_curve.o bin/convpkey.o bin/rand.o bin/common.o
+OBJECTS_SIGN = bin/modular_arithmetic.o bin/elliptic_curve.o bin/rand.o bin/signature.o bin/sign.o bin/common.o
+OBJECTS_VERIFY = bin/modular_arithmetic.o bin/elliptic_curve.o bin/rand.o bin/signature.o bin/verify.o bin/common.o
 BLOCK = inc/block.hpp inc/block.cpp
 
 all : $(EXEC1) $(PRIV_KEY) $(PUB_KEY) $(SIGN) $(VERIFY)
@@ -54,19 +54,22 @@ bin/signature.o : src/signature.cpp inc/signature.hpp inc/elliptic_curve.hpp $(B
 bin/rand.o : src/rand.c
 	gcc $< -Iinc -c -o $@
 
-bin/genpkey.o : src/genpkey.cpp inc/elliptic_curve.hpp $(BLOCK)
+bin/common.o : src/common.cpp inc/common.hpp $(BLOCK)
 	$(CC) $< $(CFLAGS) -c -o $@
 
-bin/convpkey.o : src/convpkey.cpp inc/elliptic_curve.hpp $(BLOCK)
+bin/genpkey.o : src/genpkey.cpp inc/common.hpp $(BLOCK)
 	$(CC) $< $(CFLAGS) -c -o $@
 
-bin/sign.o : src/sign.cpp inc/signature.hpp $(BLOCK)
+bin/convpkey.o : src/convpkey.cpp inc/common.hpp $(BLOCK)
 	$(CC) $< $(CFLAGS) -c -o $@
 
-bin/verify.o : src/verify.cpp inc/signature.hpp $(BLOCK)
+bin/sign.o : src/sign.cpp inc/common.hpp $(BLOCK)
+	$(CC) $< $(CFLAGS) -c -o $@
+
+bin/verify.o : src/verify.cpp inc/common.hpp $(BLOCK)
 	$(CC) $< $(CFLAGS) -c -o $@
 
 clean :
-	rm -f *.out bin/*.o *.txt keys/*.pub signatures/*.crt
+	rm -f *.out bin/*.o *.txt keys/*.pub keys/*.prv signatures/*.crt
 	rm -rf *.dSYM
 .PHONY : clean
